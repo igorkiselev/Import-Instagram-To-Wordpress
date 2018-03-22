@@ -1,0 +1,204 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-02-05 11:47+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco - https://localise.biz/"
+
+#: index.php:22 index.php:77 index.php:77 index.php:228
+msgid "Instagram"
+msgstr ""
+
+#: index.php:37
+msgid "Images from my instagram"
+msgstr ""
+
+#: index.php:141
+msgid ""
+"<span style=\"color:red\">You need to turn on \"allow_url_fopen\" in your "
+"hosting php settings.</span>"
+msgstr ""
+
+#: index.php:228
+msgid "Data was updated."
+msgstr ""
+
+#: index.php:293
+msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+#: index.php:302
+msgid "Import images from instagram account to attachments"
+msgstr ""
+
+#: index.php:311
+msgid "Lets start"
+msgstr ""
+
+#: index.php:313
+#, php-format
+msgid ""
+"<a href=\"https://www.instagram.com/developer/clients/manage/\" "
+"class=\"button\" target=\"_blank\">%s</a>"
+msgstr ""
+
+#: index.php:313
+msgid "Manage Client"
+msgstr ""
+
+#: index.php:319
+msgid "Client ID"
+msgstr ""
+
+#: index.php:320 index.php:328 index.php:347 index.php:368
+#, php-format
+msgid ""
+"<strong>%s</strong><span class=\"dashicons dashicons-yes\" style=\"color:"
+"green\"></span>"
+msgstr ""
+
+#: index.php:322
+msgid "enter client ID from app"
+msgstr ""
+
+#: index.php:327
+msgid "Client Secret"
+msgstr ""
+
+#: index.php:330
+msgid "enter client secret from app"
+msgstr ""
+
+#: index.php:336
+msgid "Authorization callback URI"
+msgstr ""
+
+#: index.php:340
+#, php-format
+msgid ""
+"<strong>%s</strong><span class=\"dashicons dashicons-no-alt\" style=\"color:"
+"orange\"></span>"
+msgstr ""
+
+#: index.php:342
+#, php-format
+msgid ""
+"You have an access token, but the calback URI is different.<br /><small><b>"
+"%s</b> — the correct one.</small>"
+msgstr ""
+
+#: index.php:354
+#, php-format
+msgid "<strong>%s</strong>"
+msgstr ""
+
+#: index.php:356
+msgid ""
+"We need the instagram APP redirect to this page after it recieves the code. "
+"Set this link in your APP api settings."
+msgstr ""
+
+#: index.php:366
+msgid "Access token"
+msgstr ""
+
+#: index.php:370
+msgid "Access token that your application created."
+msgstr ""
+
+#: index.php:378
+msgid "Revoke"
+msgstr ""
+
+#: index.php:383
+#, php-format
+msgid ""
+"<a id=\"ajax_instagram_update\" href=\"#update\" class=\"button-large button-"
+"primary button_ajax\">%s</a>"
+msgstr ""
+
+#: index.php:384
+msgid "Fetch data now"
+msgstr ""
+
+#: index.php:402
+msgid "Autoupdate"
+msgstr ""
+
+#: index.php:404
+msgid "Cron task"
+msgstr ""
+
+#: index.php:407
+msgid "A cron task will call the update function each hour."
+msgstr ""
+
+#: index.php:412
+#, php-format
+msgid "Email notification (%s)"
+msgstr ""
+
+#: index.php:415
+msgid "Send hourly an email about instagram import updates."
+msgstr ""
+
+#: index.php:421
+#, php-format
+msgid ""
+"<div id=\"instagram_preview\"><a id=\"ajax_instagram_preview\" "
+"href=\"#preview\" class=\"button-large button button_ajax\">%s</a><pre></pre>"
+"</div>"
+msgstr ""
+
+#: index.php:422
+msgid "Fetch object preview"
+msgstr ""
+
+#: index.php:426
+msgid "System check"
+msgstr ""
+
+#: index.php:426
+msgid ""
+"<span style=\"color:red\"><span class=\"dashicons dashicons-warning\"></span>"
+" You need to turn on \"allow_url_fopen\" in your hosting php settings.</span>"
+msgstr ""
+
+#: index.php:436
+msgid ""
+"Plugin to import instagram images. Developed by Igor Kiselev, <a "
+"href=\"//www.justbenice.ru/\">Just Be Nice</a>"
+msgstr ""
+
+#: index.php:476
+msgid "Settings"
+msgstr ""
+
+#. Name of the plugin
+msgid "Instagram import"
+msgstr ""
+
+#. Description of the plugin
+msgid "Plug-in imports images from instagram"
+msgstr ""
+
+#. URI of the plugin
+msgid "http://www.igorkiselev.com/wp-plugins/import_instagram"
+msgstr ""
+
+#. Author of the plugin
+msgid "Igor Kiselev"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "http://www.igorkiselev.com/"
+msgstr ""

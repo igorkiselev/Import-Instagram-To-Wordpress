@@ -1,0 +1,49 @@
+@keyframes ajax_loading { from {transform:rotate(0deg);} to {transform:rotate(360deg);} }
+
+.button_ajax{transition:all .5s; padding-right:12px; position:relative;}
+.button_ajax.ajax_loader{transition:all .5s; padding-right:30px!important;}
+.button_ajax:after{
+	content:''; display:block;
+	width:11px; height:11px;
+	border-radius:100%;
+	border:2px Solid #ddd; border-right-color:#0073aa;
+	right:0px; top:50%;
+	position:absolute;
+	margin: -7px 7px 0px 0px;
+	opacity:0;
+	animation: ajax_loading .5s linear infinite;
+
+}
+.button_ajax.ajax_loader:after{
+	opacity:1;
+}
+
+#instagram_preview{
+	background-color: transparent;
+	transition: background-color 1s;
+	padding:15px;
+	border-radius:3px;
+	border:1px Solid #fff;
+}
+
+#instagram_preview.loaded{
+	background-color: #fff;
+}
+
+#instagram_preview.loaded pre{
+
+	display:block;
+}
+	
+#instagram_preview pre{
+	white-space: pre-wrap;       /* css-3 */
+	white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+	white-space: -pre-wrap;      /* Opera 4-6 */
+	white-space: -o-pre-wrap;    /* Opera 7 */
+	word-wrap: break-word; 
+	
+	font-size:10px;
+	line-height:15px;
+	padding:15px;
+	display:none;
+}
