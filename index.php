@@ -17,6 +17,143 @@ if (! defined('ABSPATH')) {
 
 $oauth = 'https://api.instagram.com/';
 
+class instagramImport{
+	
+
+public function get_app_code($f){
+
+    global $oauth;
+
+    session_start();
+
+    $api_query = $oauth.'oauth/access_token';
+    
+    $ch = curl_init();
+
+    curl_setopt($ch, CURLOPT_URL, $api_query);
+
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+
+    curl_setopt($ch, CURLOPT_POST, true);
+
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $f);
+
+    $result = curl_exec($ch);
+
+    curl_close($ch);
+
+    $result = json_decode($result);
+    
+    if (!isset($result->code)) {
+        update_option('instagram_app_access_token', $result->access_token);
+    }
+}
+
+public function error_allow_url_fopen(){
+    if (ini_get('allow_url_fopen')) {
+        return false;
+    } else {
+        return true;
+    }
+}
+public function preview_app_object(){
+    global $oauth;
+    
+    $a = get_option('instagram_app_access_token');
+    
+    $string = $oauth.'v1/users/self/media/recent?access_token='.$a;
+    
+    if ($a) {
+        $result = json_decode(
+            file_get_contents($string)
+        );
+        
+        if ($result) {
+            echo print_r($result->data, false);
+        } else {
+            if ($this->error_allow_url_fopen()) {
+                _e('<span style="color:red">You need to turn on "allow_url_fopen" in your hosting php settings.</span>', 'instagram');
+            }
+        }
+    }
+}
+
+private function wp_insert_post($item){
+    return wp_insert_post(
+        array(
+            'post_type' => 'instagram',
+            'post_title'    => $item->caption->text,
+            'post_name'    => $item->id,
+            'post_status'   => 'publish',
+            'post_author'   => 1,
+            'post_date' => date('Y-m-d h:i:s', $item->created_time)
+        )
+    );
+}
+private function wp_insert_postmeta($item, $post_id){
+    add_post_meta($post_id, 'link', $item->link, false);
+}
+private function wp_insert_attachment($images, $id, $post_id, $featured){
+    if ($images->standard_resolution) {
+        $image_id = media_sideload_image($images->standard_resolution->url, $post_id, $id, 'id');
+    
+        if ($featured) {
+            set_post_thumbnail($post_id, $image_id);
+        }
+    }
+}
+
+public function update_app_data(){
+    global $oauth;
+
+    $a = get_option('instagram_app_access_token');
+
+    if ($a) {
+        $result = json_decode(
+            file_get_contents($oauth.'v1/users/self/media/recent?access_token='.$a)
+        );
+    
+        if ($result) {
+            foreach ($result->data as &$item) {
+                global $wpdb;
+            
+                $table = $wpdb->prefix."posts";
+            
+                $query = $wpdb->get_row("SELECT post_name FROM $table WHERE post_name='".$item->id."'", 'ARRAY_A');
+
+                if (!$query) {
+                    $post_id = $this->wp_insert_post($item);
+            
+                    $this->wp_insert_postmeta($item, $post_id);
+            
+                    if ($item->type == "image" || $item->type == "video") {
+                        $this->wp_insert_attachment($item->images, $item->id, $post_id, true);
+                    } elseif ($item->type == "carousel") {
+                        $i = false;
+                
+                        foreach ($item->carousel_media as &$carousel_item) {
+                            $attach = !$i ? true : false;
+                    
+                            $this->wp_insert_attachment($carousel_item->images, $item->id, $post_id, $attach);
+                    
+                            $i = true;
+                        }
+                    }
+                }
+            }
+        
+            if (get_option('instagram_plugin_notify')) {
+                mail(get_option('admin_email'), __('Instagram', 'instagram'), __('Data was updated.', 'instagram'));
+            }
+        }
+    }
+}
+}
+
+$instagramImport = new instagramImport();
+
 add_action('plugins_loaded', function () {
     add_action('init', function () {
         register_post_type(
@@ -59,7 +196,7 @@ add_action('plugins_loaded', function () {
                     exit;
                 } else {
                     $f['code'] = $_GET["code"];
-                    _get_app_code($f);
+                    $instagramImport->get_app_code($f);
                 }
             }
         }
@@ -78,149 +215,10 @@ add_action('plugins_loaded', function () {
         add_options_page(__('Instagram', 'instagram'), __('Instagram', 'instagram'), 'manage_options', 'instagram_app', '_options_page');
     });
     
-    function _get_app_code($f)
-    {
-        global $oauth;
-    
-        session_start();
+	
 
-        $api_query = $oauth.'oauth/access_token';
-        
-        $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, $api_query);
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-
-        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-
-        curl_setopt($ch, CURLOPT_POST, true);
-
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $f);
-
-        $result = curl_exec($ch);
-
-        curl_close($ch);
-
-        $result = json_decode($result);
-        
-        if (!isset($result->code)) {
-            update_option('instagram_app_access_token', $result->access_token);
-        }
-    }
-
-    function _error_allow_url_fopen()
-    {
-        if (ini_get('allow_url_fopen')) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-    
-    
-
-    function _preview_app_object()
-    {
-        global $oauth;
-        
-        $a = get_option('instagram_app_access_token');
-        
-        $string = $oauth.'v1/users/self/media/recent?access_token='.$a;
-        
-        if ($a) {
-            $result = json_decode(
-                file_get_contents($string)
-            );
-            
-            if ($result) {
-                echo print_r($result->data, false);
-            } else {
-                if (_error_allow_url_fopen()) {
-                    _e('<span style="color:red">You need to turn on "allow_url_fopen" in your hosting php settings.</span>', 'instagram');
-                }
-            }
-        }
-    }
-
-    function _wp_insert_post($item)
-    {
-        return wp_insert_post(
-            array(
-                'post_type' => 'instagram',
-                'post_title'    => $item->caption->text,
-                'post_name'    => $item->id,
-                'post_status'   => 'publish',
-                'post_author'   => 1,
-                'post_date' => date('Y-m-d h:i:s', $item->created_time)
-            )
-        );
-    }
-
-    function _wp_insert_postmeta($item, $post_id)
-    {
-        add_post_meta($post_id, 'link', $item->link, false);
-    }
-
-    function _wp_insert_attachment($images, $id, $post_id, $featured)
-    {
-        if ($images->standard_resolution) {
-            $image_id = media_sideload_image($images->standard_resolution->url, $post_id, $id, 'id');
-        
-            if ($featured) {
-                set_post_thumbnail($post_id, $image_id);
-            }
-        }
-    }
-
-    function _update_app_data()
-    {
-        global $oauth;
-    
-        $a = get_option('instagram_app_access_token');
-    
-        if ($a) {
-            $result = json_decode(
-                file_get_contents($oauth.'v1/users/self/media/recent?access_token='.$a)
-            );
-        
-            if ($result) {
-                foreach ($result->data as &$item) {
-                    global $wpdb;
-                
-                    $table = $wpdb->prefix."posts";
-                
-                    $query = $wpdb->get_row("SELECT post_name FROM $table WHERE post_name='".$item->id."'", 'ARRAY_A');
-    
-                    if (!$query) {
-                        $post_id = _wp_insert_post($item);
-                
-                        _wp_insert_postmeta($item, $post_id);
-                
-                        if ($item->type == "image" || $item->type == "video") {
-                            _wp_insert_attachment($item->images, $item->id, $post_id, true);
-                        } elseif ($item->type == "carousel") {
-                            $i = false;
-                    
-                            foreach ($item->carousel_media as &$carousel_item) {
-                                $attach = !$i ? true : false;
-                        
-                                _wp_insert_attachment($carousel_item->images, $item->id, $post_id, $attach);
-                        
-                                $i = true;
-                            }
-                        }
-                    }
-                }
-            
-                if (get_option('instagram_plugin_notify')) {
-                    mail(get_option('admin_email'), __('Instagram', 'instagram'), __('Data was updated.', 'instagram'));
-                }
-            }
-        }
-    }
-
-    function _option_field($t =  null, $type = 'html', $p =  null, $c = null, $n = null, $d = null, $v = null)
+function _option_field($t =  null, $type = 'html', $p =  null, $c = null, $n = null, $d = null, $v = null)
     {
         if (!$v) {
             $v = get_option($n);
@@ -230,19 +228,17 @@ add_action('plugins_loaded', function () {
     
         $result = "";
     
-        if (!$h) {
-            $result .= "<tr><th scope=\"row\">";
-        }
+        $result .= (!$h) ? "<tr><th scope=\"row\">" : '';
     
         if ($type == 'html') {
             $result .= __($t);
         } elseif ($type == 'field' || $type == 'checkbox') {
             $result .= "<label for=\"$n\">".__($t)."</label>";
         }
-    
-        if (!$h) {
-            $result .= "</th><td>";
-        }
+		
+    	$result .= (!$h) ? "</th><td>" : '';
+		
+        
     
         if ($type == 'html') {
             $result .= "<p>$p<p>";
@@ -254,20 +250,19 @@ add_action('plugins_loaded', function () {
             $result .= "<input id=\"$n\" name=\"$n\" type=\"checkbox\" value=\"1\"  ".checked('1', $v, false)." /> ".$p;
         }
     
-        if ($d) {
-            $result .= "<p class=\"description\">".__($d)."</p>";
-        }
+        $result .= ($d) ? "<p class=\"description\">".__($d)."</p>" : "";
+		
+		$result .= (!$h) ? "</td></tr>" : '';
         
-        if (!$h) {
-            $result .= "</td></tr>";
-        }
     
         echo $result;
     }
-    
-    function _options_page()
+
+
+function _options_page()
     {
         global $oauth;
+		global $instagramImport;
         if (!current_user_can('manage_options')) {
             wp_die(__('You do not have sufficient permissions to access this page.', 'instagram'));
         }
@@ -407,7 +402,7 @@ add_action('plugins_loaded', function () {
                                 __('Fetch object preview', 'instagram')
                             )
                         );
-                        if (_error_allow_url_fopen()) {
+                        if ($instagramImport->error_allow_url_fopen()) {
                             _option_field(__('System check', 'instagram'), 'html', __('<span style="color:red"><span class="dashicons dashicons-warning"></span> You need to turn on "allow_url_fopen" in your hosting php settings.</span>', 'instagram'));
                         } ?>
 					
@@ -445,17 +440,19 @@ add_action('plugins_loaded', function () {
     
     add_action('wp_ajax_instagram_update', function () {
         global $wpdb;
-        _update_app_data();
+		global $instagramImport;
+        $instagramImport->update_app_data();
         wp_die();
     });
     
     add_action('wp_ajax_instagram_preview', function () {
         global $wpdb;
-        _preview_app_object();
+		global $instagramImport;
+       	$instagramImport->preview_app_object();
         wp_die();
     });
     
-    require('shortcode/instagram.php');
+    //require('shortcode/instagram.php');
     
     add_filter('plugin_action_links_' . plugin_basename(__FILE__), function ($links) {
         return array_merge($links, array('<a href="' . admin_url('options-general.php?page=justbenice-instagram') . '">'.__('Settings', 'instagram').'</a>',));
