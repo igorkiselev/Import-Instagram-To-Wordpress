@@ -16,7 +16,7 @@
 	
 	<?php if($instagram): ?>
 		
-		<div class="carousel" data-items="1" data-loop="1">
+		<div id="instagram__carousel" class="carousel" data-items="1" data-loop="1">
 			
 			<?php foreach ( $instagram as &$image ) : ?>
 				
