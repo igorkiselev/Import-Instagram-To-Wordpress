@@ -18,15 +18,15 @@ if (! defined('ABSPATH')) {
 $oauth = 'https://api.instagram.com/';
 
 class instagramImport{
-	
+	private $oauth = 'https://api.instagram.com/';
 
 public function get_app_code($f){
 
-    global $oauth;
+
 
     session_start();
 
-    $api_query = $oauth.'oauth/access_token';
+    $api_query = $this->oauth.'oauth/access_token';
     
     $ch = curl_init();
 
@@ -59,11 +59,11 @@ public function error_allow_url_fopen(){
     }
 }
 public function preview_app_object(){
-    global $oauth;
+  
     
     $a = get_option('instagram_app_access_token');
     
-    $string = $oauth.'v1/users/self/media/recent?access_token='.$a;
+    $string = $this->oauth.'v1/users/self/media/recent?access_token='.$a;
     
     if ($a) {
         $result = json_decode(
@@ -106,13 +106,13 @@ private function wp_insert_attachment($images, $id, $post_id, $featured){
 }
 
 public function update_app_data(){
-    global $oauth;
+
 
     $a = get_option('instagram_app_access_token');
 
     if ($a) {
         $result = json_decode(
-            file_get_contents($oauth.'v1/users/self/media/recent?access_token='.$a)
+            file_get_contents($this->oauth.'v1/users/self/media/recent?access_token='.$a)
         );
     
         if ($result) {
@@ -181,6 +181,7 @@ add_action('plugins_loaded', function () {
 
     add_action('admin_init', function () {
         global $oauth;
+		global $instagramImport;
         
         $c = get_option('instagram_app_client_id');
         $s = get_option('instagram_app_client_secret');
@@ -422,15 +423,24 @@ function _options_page()
     }
 
     if (get_option('instagram_plugin_cron')) {
-        add_action('wp', function () {
-            if (!wp_next_scheduled('mycronjob')) {
-                wp_schedule_event(time(), 'hourly', 'mycronjob');
-            }
-        });
-        register_deactivation_hook(__FILE__, function () {
-            wp_unschedule_event(wp_next_scheduled('mycronjob'), 'mycronjob');
-        });
-        add_action('mycronjob', '_update_app_data');
+		
+		register_activation_hook(__FILE__, function(){
+		    if (! wp_next_scheduled ( 'justbenice_instagram_hourly_event' )) {
+			wp_schedule_event(time(), 'hourly', 'justbenice_instagram_hourly_event');
+		    }
+		});
+
+		add_action('justbenice_instagram_hourly_event', function(){
+			global $instagramImport;
+			
+	        $instagramImport->update_app_data();
+			
+		});
+
+		register_deactivation_hook(__FILE__, function(){
+			wp_clear_scheduled_hook('justbenice_instagram_hourly_event');
+		});
+	
     }
 
     add_action('admin_enqueue_scripts', function () {
